@@ -6,6 +6,8 @@ disable-model-invocation: true
 
 # Reflect
 
+> Outside Cursor, read `../pstack-harness/SKILL.md` once per session first. It maps the Cursor tools, model slugs, and paths in this skill to your harness.
+
 Mine the current conversation for durable learnings, then route them into skill edits.
 
 ## When to invoke

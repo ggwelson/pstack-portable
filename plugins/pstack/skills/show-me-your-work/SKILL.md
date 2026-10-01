@@ -6,6 +6,8 @@ disable-model-invocation: true
 
 # Show me your work
 
+> Outside Cursor, read `../pstack-harness/SKILL.md` once per session first. It maps the Cursor tools, model slugs, and paths in this skill to your harness.
+
 Keep one canonical log.
 
 ## The format

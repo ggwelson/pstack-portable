@@ -5,6 +5,8 @@ description: Configure which models pstack uses per role and at what reasoning b
 
 # Setup pstack
 
+> Outside Cursor, read `../pstack-harness/SKILL.md` once per session first. It maps the Cursor tools, model slugs, and paths in this skill to your harness.
+
 Write `~/.cursor/rules/pstack-models.mdc`, an always-applied rule that sets pstack's model per role.
 
 ## Steps

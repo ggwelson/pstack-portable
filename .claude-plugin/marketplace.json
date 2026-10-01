@@ -1,0 +1,18 @@
+{
+  "name": "pstack-portable",
+  "owner": {
+    "name": "Gabby Welson"
+  },
+  "metadata": {
+    "description": "poteto's pstack, packaged for Claude Code and Codex"
+  },
+  "plugins": [
+    {
+      "name": "pstack",
+      "source": "./plugins/pstack",
+      "description": "poteto's pstack skills verbatim, plus a harness adapter for Claude Code, Codex, and others.",
+      "version": "0.15.5-portable.1",
+      "license": "MIT"
+    }
+  ]
+}

@@ -6,6 +6,7 @@
 #
 # Usage: worktree-audit.sh [repo-path]   (defaults to the current repo)
 set -u
+script_dir=$(cd "$(dirname "$0")" && pwd)
 
 repo="${1:-$(git rev-parse --show-toplevel 2>/dev/null)}"
 [ -z "$repo" ] && { echo "not in a git repo; pass a repo path" >&2; exit 1; }
@@ -22,9 +23,17 @@ prs=$(mktemp)
 gh pr list --author "@me" --state all --limit 1000 \
 	--json number,state,headRefName 2>/dev/null > "$prs" || echo "[]" > "$prs"
 
-# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.
-slug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')
-transcripts="$HOME/.cursor/projects/$slug/agent-transcripts"
+# Transcripts from every harness. pstack-harness knows how Claude Code and Cursor
+# name their per-workspace directories. Codex keeps one tree for all workspaces, so
+# search only rollouts from the last 5 days. Older ones cannot make a worktree recent.
+# Without rg or the helper the scan cannot prove a worktree idle, so every worktree
+# is held.
+find_transcripts="$script_dir/../../pstack-harness/scripts/find-transcripts.sh"
+scan=yes
+command -v rg >/dev/null 2>&1 || { scan=no; echo "warn: rg not found; holding every worktree as verify-recent-chat" >&2; }
+[ -x "$find_transcripts" ] || { scan=no; echo "warn: $find_transcripts missing; holding every worktree as verify-recent-chat" >&2; }
+codex_recent=$(mktemp)
+find "${CODEX_HOME:-$HOME/.codex}/sessions" -name 'rollout-*.jsonl' -mtime -5 2>/dev/null > "$codex_recent"
 now=$(date +%s)
 
 printf "SIZE\tAGE\tMERGED\tDIRTY\tREMOTE\tPR\tLAST_CHAT\tBUCKET\tWORKTREE\n"
@@ -60,16 +69,26 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 		'.[] | select(.headRefName==$b) | "#\(.number)/\(.state)"' "$prs" 2>/dev/null | head -1)
 	[ -z "$pr" ] && pr="-"
 
-	# Most recent chat whose transcript operated in this worktree. Match path
-	# followed by "/" or a quote so glint-482 does not match glint-482-r37.
+	# Most recent chat whose transcript operated in this worktree. Match the literal
+	# path followed by "/" or a quote so glint-482 does not match glint-482-r37.
+	# Git reports /private/tmp/x where a chat opened in /tmp/x records /tmp/x.
+	alias=$wt
+	case $wt in /private/tmp/* | /private/var/*) alias=${wt#/private} ;; esac
+	# A helper that fails cannot prove the worktree idle, so it holds the worktree.
 	last="-"; last_ts=0
-	if [ -d "$transcripts" ]; then
-		f=$(rg -l -e "${wt}/" -e "${wt}\"" "$transcripts" 2>/dev/null \
-			| xargs stat -f '%m %N' 2>/dev/null | sort -rn | head -1)
+	if [ "$scan" = yes ] && roots=$( { "$find_transcripts" --roots --cwd "$main_wt" &&
+		"$find_transcripts" --roots --cwd "$wt"; } 2>/dev/null ); then
+		f=$( {
+			[ -n "$roots" ] && printf '%s\n' "$roots" | sort -u | tr '\n' '\0' \
+				| xargs -0 rg -l -F -e "${wt}/" -e "${wt}\"" -e "${alias}/" -e "${alias}\"" 2>/dev/null
+			tr '\n' '\0' < "$codex_recent" | xargs -0 rg -l -F -e "${wt}/" -e "${wt}\"" -e "${alias}/" -e "${alias}\"" 2>/dev/null
+		} | tr '\n' '\0' | xargs -0 stat -f '%m %N' 2>/dev/null | sort -rn | head -1)
 		if [ -n "$f" ]; then last_ts=$(echo "$f" | awk '{print $1}')
 			last=$(date -r "$last_ts" '+%Y-%m-%d' 2>/dev/null); fi
+		recent=$([ "$last_ts" -gt 0 ] 2>/dev/null && [ $(( (now - last_ts) / 86400 )) -le 4 ] && echo yes || echo no)
+	else
+		last="?"; recent=yes
 	fi
-	recent=$([ "$last_ts" -gt 0 ] 2>/dev/null && [ $(( (now - last_ts) / 86400 )) -le 4 ] && echo yes || echo no)
 
 	case "$dirty" in wip:*) bucket=hold-wip ;; *)
 		case "$pr" in *OPEN*) bucket=hold-open-pr ;; *)
@@ -83,4 +102,4 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 		"$size" "$age" "$merged" "$dirty" "$remote" "$pr" "$last" "$bucket" "$wt"
 done | sort -t$'\t' -k1,1 -rh
 
-rm -f "$prs"
+rm -f "$prs" "$codex_recent"

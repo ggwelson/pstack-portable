@@ -1,0 +1,27 @@
+{
+  "name": "pstack",
+  "version": "0.15.5-portable.1",
+  "description": "poteto's pstack for Codex, Claude Code, and other harnesses. The upstream Cursor skills verbatim, plus an adapter that maps Cursor tools, model slugs, and paths to the harness you run in.",
+  "author": {
+    "name": "Lauren Tan (poteto)",
+    "url": "https://github.com/cursor/plugins/tree/main/pstack"
+  },
+  "homepage": "https://github.com/cursor/plugins/tree/main/pstack",
+  "license": "MIT",
+  "keywords": ["pstack", "poteto-mode", "workflow", "principles", "subagents", "unslop"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "pstack",
+    "shortDescription": "Rigorous agent workflows from poteto",
+    "longDescription": "Twenty-three playbooks, twenty-three principles, and multi-model review panels. Start with $poteto-mode for any task that needs rigor.",
+    "developerName": "Lauren Tan (poteto)",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Write"],
+    "defaultPrompt": [
+      "Use $poteto-mode to fix this bug. Repro first.",
+      "Use $how to explain how this subsystem works.",
+      "Use $interrogate to review this diff."
+    ],
+    "logo": "./assets/logo.png"
+  }
+}

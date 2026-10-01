@@ -1,0 +1,5 @@
+interface:
+  display_name: "maintain-verification-skill"
+  short_description: "Part of pstack. Invoke it explicitly."
+policy:
+  allow_implicit_invocation: false
