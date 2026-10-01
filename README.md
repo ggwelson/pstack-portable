@@ -1,12 +1,18 @@
 # pstack-portable
 
-[pstack](https://github.com/cursor/plugins/tree/main/pstack) is poteto's set of rigorous agent workflows for Cursor. This repo packages it for Claude Code, Codex, and apps built on them such as T3 Code.
+> Copied from [pstack](https://github.com/cursor/plugins/tree/main/pstack) by [poteto](https://x.com/poteto) (Lauren Tan), which lives in [cursor/plugins](https://github.com/cursor/plugins). All skills, playbooks, and principles are poteto's work. This repo only repackages them to run outside Cursor.
 
-The skills are upstream's, unchanged. A small layer maps the Cursor tools, model slugs, and paths they name to the harness that runs them. `sync.sh` re-imports upstream and re-applies the layer, so you track poteto's releases instead of a fork.
+pstack is poteto's set of rigorous agent workflows for Cursor. This repo packages it for Claude Code, Codex, and apps built on them such as T3 Code.
+
+The skills are upstream's, unchanged. A small layer maps the Cursor tools, model slugs, and paths they name to the harness that runs them. `sync.sh` re-imports upstream and re-applies the layer, so you track poteto's releases instead of maintaining a diverging copy.
 
 ## Install
 
 Clone this repo somewhere it will stay. Both harnesses install from the clone.
+
+```bash
+git clone https://github.com/ggwelson/pstack-portable.git
+```
 
 **Claude Code**
 
